@@ -6,10 +6,12 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="win64-gcc-debug">
+				<Option platforms="Windows;" />
 				<Option output="bin/win64-gcc-debug/cpp_curses" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/win64-gcc-debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option use_console_runner="0" />
 				<Compiler>
 					<Add option="-march=corei7" />
 					<Add option="-std=c++14" />
@@ -26,93 +28,48 @@
 				</Compiler>
 				<Linker>
 					<Add option="-pg -lgmon" />
+					<Add library="boost_system-mt-d" />
+					<Add library="boost_thread-mt-d.dll" />
+					<Add library="small_object" />
+					<Add directory="../small_object/bin/debug-win-gcc-x64" />
+					<Add directory="D:/cpp/boost_1_60_0/stage/gcc64/lib" />
 				</Linker>
 			</Target>
 			<Target title="win64-gcc-release">
+				<Option platforms="Windows;" />
 				<Option output="bin/win64-gcc-release/cpp_curses" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/win64-gcc-release/" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Option projectCompilerOptionsRelation="1" />
-				<Compiler>
-					<Add option="-std=c++11" />
-					<Add option="-fno-rtti" />
-					<Add option="-fno-exceptions" />
-					<Add option="-DUNICODE" />
-					<Add option="-D_UNICODE" />
-					<Add directory="include/win" />
-					<Add directory="include" />
-					<Add directory="include/vesa" />
-				</Compiler>
-				<Linker>
-					<Add option="-s" />
-				</Linker>
-			</Target>
-			<Target title="win64-gcc-debug-jemc">
-				<Option output="bin/win64-gcc-debug-jemc/cpp_curses" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/win64-gcc-debug-jemc/" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Option projectCompilerOptionsRelation="1" />
-				<Compiler>
-					<Add option="-std=c++11" />
-					<Add option="-pg" />
-					<Add option="-g" />
-					<Add option="-fno-rtti" />
-					<Add option="-fno-exceptions" />
-					<Add option="-DUNICODE" />
-					<Add option="-D_UNICODE" />
-					<Add option="-DCURSES_JEMALLOC" />
-					<Add directory="include/win" />
-					<Add directory="c:/MinGW/msys64/usr/include" />
-					<Add directory="D:/cpp/boost_1_60_0" />
-					<Add directory="include" />
-					<Add directory="include/vesa" />
-				</Compiler>
-				<Linker>
-					<Add option="-pg -lgmon" />
-					<Add library="jemalloc" />
-					<Add directory="c:/MinGW/msys64/usr/lib" />
-				</Linker>
-			</Target>
-			<Target title="win64-gcc-release-jemc">
-				<Option output="bin/win64-gcc-release-jemc/cpp_curses" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/win64-gcc-release-jemc/" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Compiler>
-					<Add option="-fexpensive-optimizations" />
-					<Add option="-std=c++14" />
-					<Add option="-pg" />
-					<Add option="-DUNICODE" />
-					<Add option="-D_UNICODE" />
-					<Add option="-DCURSES_JEMALLOC" />
-					<Add directory="include/win" />
-					<Add directory="c:/MinGW/msys64/usr/include" />
-					<Add directory="include" />
-					<Add directory="include/vesa" />
-				</Compiler>
-				<Linker>
-					<Add option="-pg -lgmon" />
-					<Add library="jemalloc" />
-					<Add directory="c:/MinGW/msys64/usr/lib" />
-				</Linker>
-			</Target>
-			<Target title="vesa-gcc-x86-64">
-				<Option output="cppcurses" prefix_auto="1" extension_auto="1" />
 				<Option type="0" />
 				<Option compiler="gcc" />
+				<Option projectCompilerOptionsRelation="1" />
 				<Compiler>
-					<Add option="-std=c++0x" />
-					<Add option="-nostdlib" />
+					<Add option="-O2" />
+					<Add option="-Wall" />
+					<Add option="-std=c++11" />
+					<Add option="-fno-rtti" />
+					<Add option="-fno-exceptions" />
+					<Add option="-DUNICODE" />
+					<Add option="-D_UNICODE" />
+					<Add directory="include/win" />
+					<Add directory="include" />
 				</Compiler>
+				<Linker>
+					<Add library="kernel32" />
+					<Add library="user32" />
+				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-Os" />
 			<Add option="-Wall" />
 			<Add option="-fno-rtti" />
+			<Add option="-DBOOST_SYSTEM_NO_DEPRECATED" />
 			<Add directory="include" />
+			<Add directory="../small_object/include" />
 		</Compiler>
+		<Linker>
+			<Add option="-s" />
+		</Linker>
 		<Unit filename="include/action.hpp" />
 		<Unit filename="include/application.hpp" />
 		<Unit filename="include/basic_terminal_spec.hpp" />
@@ -121,63 +78,36 @@
 		<Unit filename="include/config.hpp" />
 		<Unit filename="include/config/compiller/compiller.hpp" />
 		<Unit filename="include/config/compiller/gcc.hpp" />
-		<Unit filename="include/config/compiller/ms_visualc.hpp">
-			<Option target="win64-gcc-debug" />
-			<Option target="win64-gcc-release" />
-			<Option target="win64-gcc-debug-jemc" />
-			<Option target="win64-gcc-release-jemc" />
-		</Unit>
+		<Unit filename="include/config/compiller/ms_visualc.hpp" />
 		<Unit filename="include/config/libs/containers.hpp" />
 		<Unit filename="include/config/libs/intrusive_ptr.hpp" />
-		<Unit filename="include/config/libs/jeallocator.hpp">
-			<Option target="win64-gcc-debug" />
-			<Option target="win64-gcc-release" />
-			<Option target="win64-gcc-debug-jemc" />
-			<Option target="win64-gcc-release-jemc" />
-		</Unit>
+		<Unit filename="include/config/libs/jeallocator.hpp" />
 		<Unit filename="include/config/libs/libs.hpp" />
 		<Unit filename="include/config/libs/noncopyable.hpp" />
-		<Unit filename="include/config/platform/atomics.hpp">
-			<Option target="win64-gcc-debug" />
-			<Option target="win64-gcc-release" />
-			<Option target="win64-gcc-debug-jemc" />
-			<Option target="win64-gcc-release-jemc" />
-		</Unit>
+		<Unit filename="include/config/platform/atomics.hpp" />
 		<Unit filename="include/config/platform/platform.hpp" />
 		<Unit filename="include/config/platform/unix.hpp">
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
-		<Unit filename="include/config/platform/windows.hpp">
-			<Option target="win64-gcc-debug" />
-			<Option target="win64-gcc-release" />
-			<Option target="win64-gcc-debug-jemc" />
-			<Option target="win64-gcc-release-jemc" />
-		</Unit>
+		<Unit filename="include/config/platform/windows.hpp" />
 		<Unit filename="include/events.hpp" />
 		<Unit filename="include/geometry.hpp" />
 		<Unit filename="include/menu.hpp" />
-		<Unit filename="include/object.hpp" />
 		<Unit filename="include/pen.hpp" />
 		<Unit filename="include/region.hpp" />
+		<Unit filename="include/sobject.hpp" />
 		<Unit filename="include/terminal.hpp" />
 		<Unit filename="include/textjet.hpp" />
 		<Unit filename="include/vesa/vesaterm.hpp">
-			<Option target="win64-gcc-debug-jemc" />
-			<Option target="vesa-gcc-x86-64" />
+			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="include/views.hpp" />
-		<Unit filename="include/win/WinTerm.hpp">
-			<Option target="win64-gcc-debug" />
-			<Option target="win64-gcc-release" />
-			<Option target="win64-gcc-debug-jemc" />
-			<Option target="win64-gcc-release-jemc" />
-		</Unit>
+		<Unit filename="include/win/WinTerm.hpp" />
 		<Unit filename="main.cpp" />
 		<Unit filename="src/action.cpp" />
 		<Unit filename="src/border.cpp" />
 		<Unit filename="src/component.cpp" />
 		<Unit filename="src/menu.cpp" />
-		<Unit filename="src/object.cpp" />
 		<Unit filename="src/pen.cpp" />
 		<Unit filename="src/region.cpp" />
 		<Unit filename="src/stdafx.cpp">
@@ -189,16 +119,10 @@
 		</Unit>
 		<Unit filename="src/textjet.cpp" />
 		<Unit filename="src/vesa/vesaterm.cpp">
-			<Option target="win64-gcc-debug-jemc" />
-			<Option target="vesa-gcc-x86-64" />
+			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="src/views.cpp" />
-		<Unit filename="src/win/WinTerm.cpp">
-			<Option target="win64-gcc-debug" />
-			<Option target="win64-gcc-release" />
-			<Option target="win64-gcc-debug-jemc" />
-			<Option target="win64-gcc-release-jemc" />
-		</Unit>
+		<Unit filename="src/win/WinTerm.cpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />

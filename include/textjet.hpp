@@ -1,7 +1,7 @@
 #ifndef __CURSES_TEXTJET_HPP_INCLUDED__
 #define __CURSES_TEXTJET_HPP_INCLUDED__
 
-#include "object.hpp"
+#include "sobject.hpp"
 #include "views.hpp"
 
 #ifdef CURSES_HAS_PRAGMA_ONCE

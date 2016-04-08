@@ -1,5 +1,3 @@
-#pragma once
-
 #ifndef __CONFIG_HPP_INCLUDED__
 #define __CONFIG_HPP_INCLUDED__
 

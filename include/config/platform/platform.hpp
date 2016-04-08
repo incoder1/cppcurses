@@ -18,10 +18,4 @@
 // If platform not providing any specific declspec, define as empty constant
 #ifndef CURSES_PUBLIC
 #	define CURSES_PUBLIC
-#endif //
-
-// option to use je malloc memory allocator for curses objects
-// for FreeBSD it is already jemalloc
-#if defined(CURSES_JEMALLOC) && defined(__FreeBSD__)
-#	undef CURSES_JEMALLOC
-#endif // CURSES_JEMALLOC
+#endif // CURSES_PUBLIC

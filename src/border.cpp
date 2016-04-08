@@ -5,33 +5,42 @@ namespace curses {
 
 namespace detail {
 
+
+//#elif defined(CURSES_UNIX)
+//
+
+//#else
+//// VESA EGA, VGA etc
+
+//#endif // UNICODE
+
 struct single_line_corners {
 private:
 	typedef char_t char_t;
 	single_line_corners() {}
 public:
-	static inline char_t top_left() {
-		static char_t rlt = TEXT('┌');
+	static CURSES_FORCEINLINE char_t top_left() {
+		static char_t rlt = CRS_SINLE_TOP_LEFT;
 		return rlt;
 	}
-	static inline char_t top_right() {
-		static char_t rlt = TEXT('┐');
+	static CURSES_FORCEINLINE char_t top_right() {
+		static char_t rlt = CRS_SINLE_TOP_RIGHT;
 		return rlt;
 	}
-	static inline char_t bottom_left() {
-		static char_t rlt = TEXT('└');
+	static CURSES_FORCEINLINE char_t bottom_left() {
+		static char_t rlt = CRS_SINLE_BOTTOM_LEFT;
 		return rlt;
 	}
-	static inline char_t bottom_right() {
-		static char_t rlt = TEXT('┘');
+	static CURSES_FORCEINLINE char_t bottom_right() {
+		static char_t rlt = CRS_SINLE_BOTTOM_RIGHT;
 		return rlt;
 	}
-	static inline char_t horizontal() {
-		static char_t rlt = TEXT('─');
+	static CURSES_FORCEINLINE char_t horizontal() {
+		static char_t rlt = CRS_SINLE_HORIZONTAL;
 		return rlt;
 	}
-	static inline char_t vertical() {
-		static char_t rlt = TEXT('│');
+	static CURSES_FORCEINLINE char_t vertical() {
+		static char_t rlt = CRS_SINLE_VERTICAL;
 		return rlt;
 	}
 };
@@ -40,28 +49,28 @@ struct double_line_corners {
 private:
 	double_line_corners() {}
 public:
-	static inline char_t top_left() {
-		static char_t rlt = TEXT('╔');
+	static CURSES_FORCEINLINE char_t top_left() {
+		static char_t rlt = CRS_DOUBLE_TOP_LEFT;
 		return rlt;
 	}
-	static inline char_t top_right() {
-		static char_t rlt = TEXT('╗');
+	static CURSES_FORCEINLINE char_t top_right() {
+		static char_t rlt = CRS_DOUBLE_TOP_RIGHT;
 		return rlt;
 	}
-	static inline char_t bottom_left() {
-		static char_t rlt = TEXT('╚');
+	static CURSES_FORCEINLINE char_t bottom_left() {
+		static char_t rlt = CRS_DOUBLE_BOTTOM_LEFT;
 		return rlt;
 	}
-	static inline char_t bottom_right() {
-		static char_t rlt = TEXT('╝');
+	static CURSES_FORCEINLINE char_t bottom_right() {
+		static char_t rlt = CRS_DOUBLE_BOTTOM_RIGHT;
 		return rlt;
 	}
-	static inline char_t horizontal() {
-		static char_t rlt = TEXT('═');
+	static CURSES_FORCEINLINE char_t horizontal() {
+		static char_t rlt =  CRS_DOUBLE_HORIZONTAL;
 		return rlt;
 	}
-	static inline char_t vertical() {
-		static char_t rlt = TEXT('║');
+	static CURSES_FORCEINLINE char_t vertical() {
+		static char_t rlt = CRS_DOUBLE_VERTICAL;
 		return rlt;
 	}
 };

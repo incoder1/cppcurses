@@ -301,7 +301,7 @@ namespace std {
 	struct hash< curses::intrusive_ptr<T> >
 	{
 	public:
-		std::size_t operator()(curses::intrusive_ptr<T> const & p) const {
+		CURSES_CONSTEXPR std::size_t operator()(curses::intrusive_ptr<T> const & p) const {
 			return hash_value<T>(p);
 		}
 	};

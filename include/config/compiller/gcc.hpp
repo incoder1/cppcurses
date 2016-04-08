@@ -12,7 +12,7 @@
 #	define CURSES_HAS_RTTI
 #endif // GCC Rtti
 
-#ifndef  _GLIBCXX_NOEXCEPT
+#ifndef  __EXCEPTIONS
 #	define CURSES_NO_EXCEPTIONS
 #endif // exception
 
@@ -30,13 +30,14 @@
 #	define CURSES_NOEXCEPT_IF(Predicate) noexcept((Predicate))
 #	define CURSES_OVERRIDE override
 #	define CURSES_FINAL final
+#	define CURSES_CONSTEXPR constexpr
 # else
 #	define CURSES_NOEXCEPT throw()
 #	define CURSES_THROW(_EXC) throw(_EXC)
 #	define CURSES_NOEXCEPT_IF(Predicate)
 #	define CURSES_OVERRIDE
 #	define CURSES_FINAL
-
+#	define CURSES_CONSTEXPR
 #endif
 
 #define CURSES_FORCEINLINE inline __attribute__ ((always_inline))

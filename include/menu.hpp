@@ -2,31 +2,36 @@
 #define __CURSES_MENU_HPP_INCLUDED__
 
 #include "events.hpp"
-#include "object.hpp"
-#include "terminal.hpp"
+#include "sobject.hpp"
+#include "action.hpp"
+
+#include <string>
 
 namespace curses {
 
-class menu_item:public virtual object
-{
+enum item_type {
+	MENU,
+	ITEM,
+	SEPARATOR
+};
+
+
+class menu_item {
 public:
-	menu_item(const char_t* name):
-		name_(name)
+#ifndef CURSES_HAS_CPP11
+	menu_item(const string& caption):
+		caption_(caption)
+	{
+	}
+#else
+	menu_item(string&& caption):
+		caption_(CURSES_MOVE(string,caption))
 	{}
+#endif
 private:
-	const char_t* name_;
+	string caption_;
 };
 
-CURSES_DECLARE_SPTR(menu_item);
-
-class menu:public virtual object
-{
-	public:
-		explicit menu();
-		virtual ~menu();
-};
-
-CURSES_DECLARE_SPTR(menu);
 
 } // namesapce curses
 

@@ -1,10 +1,8 @@
 #ifndef __CURSES_ACTION_HPP_INCLUDED__
 #define __CURSES_ACTION_HPP_INCLUDED__
 
-#include "object.hpp"
+#include "sobject.hpp"
 #include "events.hpp"
-
-#include <set>
 
 namespace curses {
 
@@ -12,7 +10,7 @@ typedef CURSES_FUNCTOR< void(const event&) > event_handler;
 
 template<typename T, class W>
 event_handler bind_handler(T what, const intrusive_ptr<W>& w) {
-	return CURSES_BIND( what , w.get(), _1);
+	return CURSES_BIND( what , w.get(), curses::_1);
 }
 
 class CURSES_PUBLIC action:public object
@@ -30,15 +28,15 @@ class CURSES_PUBLIC action:public object
 
 CURSES_DECLARE_SPTR(action);
 
-typedef std::set<event_type> event_type_set;
+typedef CURSES_UNORDERED_SET(event_type) event_type_set;
 
 class CURSES_PUBLIC signal CURSES_FINAL {
 public:
-	explicit signal(sp_action action) CURSES_NOEXCEPT;
+	explicit signal(const sp_action& action) CURSES_NOEXCEPT;
 
 	void emit(const event& e) const;
 
-	inline bool add_event(const event_type& type) {
+	inline bool connect(const event_type& type) {
 		return events_.insert(type).second;
 	}
 

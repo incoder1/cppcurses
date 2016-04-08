@@ -16,12 +16,14 @@ private:
 		text_color brdclr(BRIGHT_WHITE,NAVY_BLUE);
 		text_color bodyclr(NAVY_YELLOW,NAVY_BLUE);
 		sp_border brd(new double_line_titled_border(brdclr,TEXT("Test title")));
-		return sp_view(new bordered_box_view(p,CURSES_MOVE_BASE(rectangle,r), bodyclr, brd) );
+		return sp_view(new bordered_box_view(p,CURSES_MOVE(rectangle,r), bodyclr, brd) );
 	}
 public:
 	TestTexject(sp_pen p, const rectangle& rect):
-		component( create_vew(p, CURSES_MOVE_BASE(rectangle,rect) ) )
+		component( create_vew(p, CURSES_MOVE(rectangle,rect) ) )
 	{
+		text_color clr( NAVY_YELLOW,  p->current_color().background );
+		p->set_color(clr);
 	}
 	void onKeyPressed(const event& ev) {
 		key_state ks = ev.key;
@@ -30,6 +32,7 @@ public:
 			std::exit(0);
 		}
 		sp_pen p = view()->get_pen();
+		p->set_cursor(0,0);
 		p->outch( 0,0, kcd );
 		p->out_text(2, 0,TEXT("typed") );
 	}
@@ -46,9 +49,25 @@ public:
 
 CURSES_DECLARE_SPTR(TestTexject);
 
-int main(int argc, const char** argv)
+#ifdef CURSES_NO_EXCEPTIONS
+namespace boost {
+	void throw_exception(std::exception const& exc) {
+		std::fprintf( stderr,  exc.what() );
+		std::exit(-1);
+	}
+}
+#endif // CURSES_NO_EXCEPTIONS
+
+//int main(int argc, const char** argv)
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,LPSTR lpCmdLine, int nCmdShow)
 {
 	sp_terminal trm(new terminal());
+
+#ifdef CURSES_TERMINAL_EMULATOR
+    trm->set_window_title(L"CPP Curses test application");
+#endif
+
+
 	bounds bds = trm->get_bounds();
 
 	sp_pen p( new pen( trm.get(), rectangle( 0, 0, bds.width, bds.height) ) );
@@ -60,10 +79,10 @@ int main(int argc, const char** argv)
     tj->show();
 
 	curses::signal ksig( new action( bind_handler(&TestTexject::onKeyPressed, tj) ) );
-	ksig.add_event(event_type::KEY);
+	ksig.connect(event_type::KEY);
 
 	curses::signal msig(new action( bind_handler(&TestTexject::onMouse, tj ) ) );
-	ksig.add_event(event_type::MOUSE);
+	ksig.connect(event_type::MOUSE);
 
 	bool active = true;
 	while(active) {

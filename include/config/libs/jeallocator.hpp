@@ -6,6 +6,7 @@
 #define __CURSES_JEMALLOC_ALLOCTOR_HPP_INCLUDED__
 
 #include <jemalloc/jemalloc.h>
+#include <string>
 
 namespace curses {
 
@@ -30,13 +31,7 @@ public :
 
 public :
 
-	allocator()
-	{}
-
-	~allocator()
-	{}
-
-	allocator(allocator const&)
+	CURSES_CONSTEXPR allocator()
 	{}
 
 	template<typename U>
@@ -89,6 +84,8 @@ public :
 		return !operator==(a);
 	}
 };
+
+typedef std::basic_string<char_t, std::char_traits<char_t>, curses::allocator<char_t> > string;
 
 } // namespace curses
 

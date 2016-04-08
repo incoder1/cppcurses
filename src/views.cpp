@@ -5,8 +5,8 @@ namespace curses {
 
 // view
 view::view(sp_pen&& p, rectangle&& rect) CURSES_NOEXCEPT:
-	parent_( CURSES_MOVE_BASE(sp_pen, p) ),
-	rect_( CURSES_MOVE_BASE(rectangle, rect) ),
+	parent_( CURSES_MOVE(sp_pen, p) ),
+	rect_( CURSES_MOVE(rectangle, rect) ),
 	display_(),
 	underground_(NULL)
 {
@@ -66,14 +66,14 @@ void view::show()
 
 // box_view
 box_view::box_view(sp_pen p, const rectangle& rect, const text_color& color):
-	view( move(p), CURSES_MOVE_BASE(rectangle,rect) ),
+	view( move(p), CURSES_MOVE(rectangle,rect) ),
 	body_color_(color)
 {
 }
 
 box_view::box_view(sp_pen&& p, rectangle&& rect, text_color&& color):
 	view(forward<sp_pen>(p),forward<rectangle>(rect)),
-	body_color_( CURSES_MOVE_BASE(text_color,color) )
+	body_color_( CURSES_MOVE(text_color,color) )
 {
 }
 
@@ -92,7 +92,7 @@ void box_view::fill() {
 
 // bordered_box_view
 bordered_box_view::bordered_box_view(sp_pen p,const rectangle& rect,const text_color& color,sp_border brd):
-	box_view(move(p),CURSES_MOVE_BASE(rectangle,rect),CURSES_MOVE_BASE(text_color,color)),
+	box_view(move(p),CURSES_MOVE(rectangle,rect),CURSES_MOVE(text_color,color)),
 	border_(brd)
 {}
 

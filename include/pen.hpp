@@ -1,7 +1,7 @@
 #ifndef __CURSES_PEN_HPP_INCLUDED__
 #define __CURSES_PEN_HPP_INCLUDED__
 
-#include "object.hpp"
+#include "sobject.hpp"
 #include "terminal.hpp"
 #include "region.hpp"
 
@@ -22,6 +22,12 @@ public:
 	 * default virtual destructor
 	 */
 	virtual ~pen() CURSES_NOEXCEPT;
+
+	/**
+	 * Set cursor in current pen area or hide it if position is invisible
+	 * \param
+	 */
+	void set_cursor(uint8_t x, uint8_t y) CURSES_NOEXCEPT;
 
 	/**
 	 * Output single character onto terminal
@@ -61,6 +67,9 @@ public:
 	 * \param cl terminal text attibutes, i.e. foreground and background colors
 	 */
 	void set_color(const text_color& cl) const;
+
+	text_color current_color() const;
+
 	/**
 	 * Copy region of terminal screen buffer character into memory
 	 * \param x x cood reletive to this pen window coord system

@@ -8,7 +8,7 @@
 #define __CURSES_VIEWS_HPP_INCUDED__
 
 #include "border.hpp"
-#include "object.hpp"
+#include "sobject.hpp"
 #include "pen.hpp"
 #include "terminal.hpp"
 

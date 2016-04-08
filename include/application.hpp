@@ -14,11 +14,11 @@ public:
 	{}
 	void run() {
 		bounds bds = p_->get_bounds();
-		p_->set_color(text_color(BLACK,WHITE));
+		p_->set_color(text_color(BLACK, WHITE) );
 		p_->out_line(0, 0,  bds.width,  TEXT(' '));
 		p_->out_line(0, bds.height-1, bds.width,  TEXT(' '));
-		//p_.set_color(text_color(WHITE,BLACK));
-		p_->out_box(0, 1, bds.width, bds.height, TEXT('░') );
+		p_->set_color(text_color(WHITE, GREY));
+		p_->out_box(0, 1, bds.width, bds.height, CRS_CLEAR_BODY_CH );
 	}
 
 private:

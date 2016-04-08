@@ -68,5 +68,4 @@ struct event {
 
 } // namespace curses
 
-
 #endif // __CURSES_EVENTS_HPP_INCLUDED__

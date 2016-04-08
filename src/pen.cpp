@@ -16,6 +16,22 @@ pen::~pen() CURSES_NOEXCEPT
 {
 }
 
+void pen::set_cursor(uint8_t x, uint8_t y) CURSES_NOEXCEPT
+{
+	bool move_pos = region_.is_visible();
+	if(move_pos) {
+		position pos = region_.current_to_parent(x,y);
+		move_pos = region_.is_pos_visible(pos);
+		if(move_pos) {
+			term_->set_cursor_visibility(true);
+			term_->move_cursor(pos.x, pos.y);
+		}
+	}
+	if(!move_pos) {
+		term_->set_cursor_visibility(false);
+	}
+}
+
 void pen::outch(uint8_t x, uint8_t y, char_t ch) const
 {
 	if(region_.is_visible()) {
@@ -99,6 +115,10 @@ void pen::paste_rect(uint8_t x, uint8_t y, uint8_t w, uint8_t h, texel* const bo
 void pen::set_color(const text_color& cl) const
 {
 	term_->set_color(cl);
+}
+
+text_color pen::current_color() const {
+	return term_->current_color();
 }
 
 sp_pen pen::sub_pen(const rectangle& rect) const

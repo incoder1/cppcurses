@@ -10,7 +10,12 @@ static const ::DWORD MOUSE_WHEELED = 4;
 static const ::DWORD MOUSE_HWHEELED = 8;
 #endif // MOUSE_HWHEELED
 
+static const ::DWORD SCRIPT_MODE_TRUE_TYPE_FONT = 9;
+static const ::DWORD BOX_DRAWING_RASTER_FONT = 8;
+
 namespace curses {
+
+
 
 CURSES_FORCEINLINE ::WORD color_to_attr(const text_color& color)
 {
@@ -64,12 +69,197 @@ static bool resize_console(::HANDLE hConsole, ::SHORT width, ::SHORT height )
 	return bSuccess;
 }
 
+#define WM_SETCONSOLEINFO			(WM_USER+201)
 
+#ifndef CURSES_HAS_CPP11
+#pragma pack(push, 1)
+typedef struct _CONSOLE_INFO
+{
+	ULONG		Length;
+	COORD		ScreenBufferSize;
+	COORD		WindowSize;
+	ULONG		WindowPosX;
+	ULONG		WindowPosY;
+
+	COORD		FontSize;
+	ULONG		FontFamily;
+	ULONG		FontWeight;
+	WCHAR		FaceName[32];
+
+	ULONG		CursorSize;
+	ULONG		FullScreen;
+	ULONG		QuickEdit;
+	ULONG		AutoPosition;
+	ULONG		InsertMode;
+
+	USHORT		ScreenColors;
+	USHORT		PopupColors;
+	ULONG		HistoryNoDup;
+	ULONG		HistoryBufferSize;
+	ULONG		NumberOfHistoryBuffers;
+
+	COLORREF	ColorTable[16];
+
+	ULONG		CodePage;
+	HWND		Hwnd;
+
+	WCHAR		ConsoleTitle[0x100];
+} CONSOLE_INFO;
+#pragma pack(pop)
+#else
+typedef struct alignas(8) _CONSOLE_INFO
+{
+	ULONG		Length;
+	COORD		ScreenBufferSize;
+	COORD		WindowSize;
+	ULONG		WindowPosX;
+	ULONG		WindowPosY;
+
+	COORD		FontSize;
+	ULONG		FontFamily;
+	ULONG		FontWeight;
+	WCHAR		FaceName[32];
+
+	ULONG		CursorSize;
+	ULONG		FullScreen;
+	ULONG		QuickEdit;
+	ULONG		AutoPosition;
+	ULONG		InsertMode;
+
+	USHORT		ScreenColors;
+	USHORT		PopupColors;
+	ULONG		HistoryNoDup;
+	ULONG		HistoryBufferSize;
+	ULONG		NumberOfHistoryBuffers;
+
+	COLORREF	ColorTable[16];
+
+	ULONG		CodePage;
+	HWND		Hwnd;
+
+	WCHAR		ConsoleTitle[0x100];
+} CONSOLE_INFO;
+#endif // CURSES_HAS_CPP11
+
+BOOL SetConsoleInfo(HWND hwndConsole, CONSOLE_INFO *pci)
+{
+	DWORD   dwConsoleOwnerPid;
+	HANDLE  hProcess;
+	HANDLE	hSection, hDupSection;
+	PVOID   ptrView = 0;
+	HANDLE  hThread;
+
+	//
+	//	Open the process which "owns" the console
+	//
+	::GetWindowThreadProcessId(hwndConsole, &dwConsoleOwnerPid);
+
+	hProcess = ::OpenProcess(MAXIMUM_ALLOWED, FALSE, dwConsoleOwnerPid);
+
+	//
+	// Create a SECTION object backed by page-file, then map a view of
+	// this section into the owner process so we can write the contents
+	// of the CONSOLE_INFO buffer into it
+	//
+	hSection = ::CreateFileMapping(INVALID_HANDLE_VALUE, 0, PAGE_READWRITE, 0, pci->Length, 0);
+	//
+	//	Copy our console structure into the section-object
+	//
+	ptrView = ::MapViewOfFile(hSection, FILE_MAP_WRITE|FILE_MAP_READ, 0, 0, pci->Length);
+
+	memcpy(ptrView, pci, pci->Length);
+
+	::UnmapViewOfFile(ptrView);
+
+	//
+	//	Map the memory into owner process
+	::DuplicateHandle(::GetCurrentProcess(), hSection, hProcess, &hDupSection, 0, FALSE, DUPLICATE_SAME_ACCESS);
+
+	//  Send console window the "update" message
+	::SendMessage(hwndConsole, WM_SETCONSOLEINFO, (WPARAM)hDupSection, 0);
+
+	hThread = ::CreateRemoteThread(hProcess, 0, 0, (LPTHREAD_START_ROUTINE)::CloseHandle, hDupSection, 0, 0);
+
+	::CloseHandle(hThread);
+	::CloseHandle(hSection);
+	::CloseHandle(hProcess);
+
+	return TRUE;
+}
+
+static void GetConsoleSizeInfo(::HANDLE hcons, CONSOLE_INFO *pci)
+{
+	::CONSOLE_SCREEN_BUFFER_INFO csbi;
+	::GetConsoleScreenBufferInfo(hcons, &csbi);
+
+	pci->ScreenBufferSize = csbi.dwSize;
+	pci->WindowSize.X	  = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+	pci->WindowSize.Y	  = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+	pci->WindowPosX	      = csbi.srWindow.Left;
+	pci->WindowPosY		  = csbi.srWindow.Top;
+}
+
+static void SetConsolePalette(::HANDLE hcons, const ::COLORREF* palette)
+{
+
+	CONSOLE_INFO ci = { sizeof(ci) };
+	int i;
+        HWND hwndConsole = GetConsoleWindow();
+	// get current size/position settings rather than using defaults..
+	GetConsoleSizeInfo(hcons, &ci);
+
+	// set these to zero to keep current settings
+	ci.FontSize.X				= 0;//8;
+	ci.FontSize.Y				= 0;//12;
+	ci.FontFamily				= 0;//0x30;//FF_MODERN|FIXED_PITCH;//0x30;
+	ci.FontWeight				= 0;//0x400;
+	//::lstrcpyW(ci.FaceName, L"Terminal");
+	ci.FaceName[0]				= L'\0';
+
+	ci.CursorSize				= 25;
+	ci.FullScreen				= FALSE;
+	ci.QuickEdit				= TRUE;
+	ci.AutoPosition				= 0x10000;
+	ci.InsertMode				= TRUE;
+	ci.ScreenColors				= MAKEWORD(0x7, 0x0);
+	ci.PopupColors				= MAKEWORD(0x5, 0xf);
+
+	ci.HistoryNoDup				= FALSE;
+	ci.HistoryBufferSize		= 50;
+	ci.NumberOfHistoryBuffers	= 4;
+	// colour table
+	for(i = 0; i < 16; i++) {
+		ci.ColorTable[i] = palette[i];
+	}
+	ci.CodePage	= 0;//0x352;
+	ci.Hwnd = hwndConsole;
+	lstrcpyW(ci.ConsoleTitle, L"");
+	SetConsoleInfo(hwndConsole, &ci);
+}
+
+
+// Terminal
 terminal::terminal():
 	hStdOut_(INVALID_HANDLE_VALUE),
 	hStdIn_(INVALID_HANDLE_VALUE),
-	hCons_(INVALID_HANDLE_VALUE)
+	hCons_(INVALID_HANDLE_VALUE),
+	extConsole_(false)
 {
+	extConsole_ = ::AttachConsole(ATTACH_PARENT_PROCESS);
+	// for a gui application try to attach calling console, or allocate a new one
+	if( !extConsole_) {
+		// check current application is alrady a console one
+		if(ERROR_ACCESS_DENIED != ::GetLastError() ) {
+			// if gui applicaion with WinMain entry point
+			// started from process withot allocated console
+			extConsole_ = ::AllocConsole();
+			if(!extConsole_) {
+				::MessageBoxW(static_cast<::HWND>(NULL),L"Can not initialize console", L"Error", MB_OK | MB_ICONERROR);
+				::ExitProcess(-1);
+			}
+		}
+	}
+
 	hStdOut_ = ::GetStdHandle(STD_OUTPUT_HANDLE);
 	assert(INVALID_HANDLE_VALUE != hStdOut_);
 
@@ -88,15 +278,8 @@ terminal::terminal():
 		std::wprintf(L"Warn! Can not initialize console window. Windows error %i\n", ::GetLastError() );
 	}
 
-	::CONSOLE_FONT_INFOEX finfo;
-	finfo.cbSize = sizeof(::CONSOLE_FONT_INFOEX);
-	::GetCurrentConsoleFontEx(hCons_,TRUE,&finfo);
-	finfo.nFont = 2;
-	std::swprintf(finfo.FaceName, L"Raster Fonts");
-	finfo.dwFontSize.X = 12;
-	finfo.dwFontSize.Y = 16;
-	finfo.FontFamily = TMPF_DEVICE;
-	if(!::SetCurrentConsoleFontEx(hCons_, TRUE, &finfo) ) {
+
+	if(!::SetConsoleFont(hCons_, BOX_DRAWING_RASTER_FONT) ) {
 		std::wprintf(L"Warn! Can not initialize console font. Windows error %i\n", ::GetLastError() );
 	}
 
@@ -112,12 +295,30 @@ terminal::terminal():
 
 	assert(::SetConsoleActiveScreenBuffer(hCons_));
 	::SetConsoleCP(1200); // UTF16LE
+
+	init_colors(hCons_);
 }
 
 terminal::~terminal() CURSES_NOEXCEPT {
 	assert( ::SetConsoleMode(hStdIn_, ocm_) );
 	assert( ::SetConsoleActiveScreenBuffer(hStdOut_) );
 	::CloseHandle(hCons_);
+	if(extConsole_)
+	{
+		::FreeConsole();
+	}
+}
+
+void terminal::init_colors(::HANDLE hcons)
+{
+  ::COLORREF palette[16] =
+  {
+    0x00000000, 0x00800000, 0x00008000, 0x00808000,
+    0x00000080, 0x00800080, 0x00008080, 0x00c0c0c0,
+    0x00808080, 0x00ff0000, 0x0000ff00, 0x00ffff00,
+    0x000000ff, 0x00ff00ff, 0x0000ffff, 0x00ffffff
+  };
+  SetConsolePalette(hcons, palette);
 }
 
 inline ::WORD terminal::current_attributes() const
@@ -142,6 +343,22 @@ void terminal::set_size(uint8_t width, uint8_t height) const
 void terminal::putch(const position& pos,char_t ch) const
 {
 	put_line(pos,ch,1);
+}
+
+void terminal::move_cursor(uint8_t x, uint8_t y) const
+{
+	::COORD pos;
+	pos.X = x;
+	pos.Y = y;
+	::SetConsoleCursorPosition(hCons_, pos);
+}
+
+void terminal::set_cursor_visibility(bool visible) const
+{
+	::CONSOLE_CURSOR_INFO  info;
+	::GetConsoleCursorInfo(hCons_, &info);
+	info.bVisible = visible; // set the cursor visibility
+	::SetConsoleCursorInfo(hCons_, &info);
 }
 
 void terminal::put_line(const position& pos, char_t ch, uint8_t count) const
@@ -187,13 +404,14 @@ void terminal::set_color(const text_color& color) const
 	assert(::SetConsoleTextAttribute(hCons_, color_to_attr(color)));
 }
 
+
 text_color terminal::current_color() const
 {
 	return attrs_to_color(current_attributes());
 }
 
 
-void terminal::clipt_rect(const rectangle& rect,texel_type* buff) const
+void terminal::clipt_rect(const rectangle& rect,texel* buff) const
 {
 	::COORD coordBufCoord;
 	coordBufCoord.X = 0;
@@ -221,7 +439,7 @@ void terminal::clipt_rect(const rectangle& rect,texel_type* buff) const
 	assert(fSuccess);
 }
 
-void terminal::paste_rect(const rectangle& rect, texel_type* data) const
+void terminal::paste_rect(const rectangle& rect, texel* data) const
 {
 	::COORD coordBufCoord;
 	coordBufCoord.X = 0;
@@ -249,12 +467,12 @@ void terminal::paste_rect(const rectangle& rect, texel_type* data) const
 	assert(fSuccess);
 }
 
-static CURSES_FORCEINLINE bool check_bit(::DWORD val, ::DWORD mask)
+void terminal::set_window_title(const char_t* title) const
 {
-	return (val & mask) == mask;
+	::SetConsoleTitleW(title);
 }
 
-static CURSES_FORCEINLINE control_key_state extact_controls(::DWORD val)
+control_key_state terminal::extact_controls(::DWORD val)
 {
 	control_key_state result;
 	result.capslock = check_bit(val,CAPSLOCK_ON);
@@ -269,38 +487,41 @@ static CURSES_FORCEINLINE control_key_state extact_controls(::DWORD val)
 	return result;
 }
 
-static CURSES_FORCEINLINE key_state create_key_event(const ::KEY_EVENT_RECORD& rcd)
+event terminal::create_key_event(const ::KEY_EVENT_RECORD& rcd)
 {
-	key_state result;
-	result.key_code = rcd.uChar.UnicodeChar;
-	result.is_down = rcd.bKeyDown != FALSE;
-	result.repeats = static_cast<uint8_t>(rcd.wRepeatCount);
-	result.controls = extact_controls(rcd.dwControlKeyState);
+	event result;
+	result.type = event_type::KEY;
+	result.key.key_code = rcd.uChar.UnicodeChar;
+	result.key.is_down = rcd.bKeyDown != FALSE;
+	result.key.repeats = static_cast<uint8_t>(rcd.wRepeatCount);
+	result.key.controls = extact_controls(rcd.dwControlKeyState);
 	return result;
 }
 
-static CURSES_FORCEINLINE mouse_state create_mouse_event(const ::MOUSE_EVENT_RECORD& rcd)
+event terminal::create_mouse_event(const ::MOUSE_EVENT_RECORD& rcd)
 {
-	mouse_state result;
-	result.x = rcd.dwMousePosition.X;
-	result.y = rcd.dwMousePosition.Y;
-	result.state.first_btn   = check_bit(rcd.dwButtonState,FROM_LEFT_1ST_BUTTON_PRESSED);
-	result.state.second_btn  = check_bit(rcd.dwButtonState,FROM_LEFT_2ND_BUTTON_PRESSED);
-	result.state.third_btn   = check_bit(rcd.dwButtonState,FROM_LEFT_3RD_BUTTON_PRESSED);
-	result.state.fourth_btn  = check_bit(rcd.dwButtonState,FROM_LEFT_4TH_BUTTON_PRESSED);
-	result.state.double_click = check_bit(rcd.dwEventFlags,DOUBLE_CLICK);
-	result.state.hor_wheeled  = check_bit(rcd.dwEventFlags,MOUSE_HWHEELED);
-	result.state.vert_wheeled = check_bit(rcd.dwEventFlags,MOUSE_WHEELED);
-	result.state.moved = check_bit(rcd.dwEventFlags,MOUSE_MOVED);
-	result.controls = extact_controls(rcd.dwControlKeyState);
+	event result;
+	result.type = event_type::MOUSE;
+	result.mouse.x = rcd.dwMousePosition.X;
+	result.mouse.y = rcd.dwMousePosition.Y;
+	result.mouse.state.first_btn   = check_bit(rcd.dwButtonState,FROM_LEFT_1ST_BUTTON_PRESSED);
+	result.mouse.state.second_btn  = check_bit(rcd.dwButtonState,FROM_LEFT_2ND_BUTTON_PRESSED);
+	result.mouse.state.third_btn   = check_bit(rcd.dwButtonState,FROM_LEFT_3RD_BUTTON_PRESSED);
+	result.mouse.state.fourth_btn  = check_bit(rcd.dwButtonState,FROM_LEFT_4TH_BUTTON_PRESSED);
+	result.mouse.state.double_click = check_bit(rcd.dwEventFlags,DOUBLE_CLICK);
+	result.mouse.state.hor_wheeled  = check_bit(rcd.dwEventFlags,MOUSE_HWHEELED);
+	result.mouse.state.vert_wheeled = check_bit(rcd.dwEventFlags,MOUSE_WHEELED);
+	result.mouse.state.moved = check_bit(rcd.dwEventFlags,MOUSE_MOVED);
+	result.mouse.controls = extact_controls(rcd.dwControlKeyState);
 	return result;
 }
 
-static CURSES_FORCEINLINE resize_state create_resize_event(const ::WINDOW_BUFFER_SIZE_RECORD& rcd)
+event terminal::create_resize_event(const ::WINDOW_BUFFER_SIZE_RECORD& rcd)
 {
-	resize_state result;
-	result.width = rcd.dwSize.X;
-	result.height = rcd.dwSize.Y;
+	event result;
+	result.type = event_type::RESIZE;
+	result.resize.width = rcd.dwSize.X;
+	result.resize.height = rcd.dwSize.Y;
 	return result;
 }
 
@@ -308,25 +529,21 @@ event terminal::wait_for_event() const
 {
 	static ::INPUT_RECORD irb[1];
 	::DWORD read = 0;
-	event result;
 	while( !read  ) {
 		::ReadConsoleInput(hStdIn_, irb, 1, &read);
-		switch(irb[0].EventType) {
-		case KEY_EVENT:
-			result.type = event_type::KEY;
-			result.key =  create_key_event(irb[0].Event.KeyEvent);
-			break;
-		case MOUSE_EVENT:
-			result.type = event_type::MOUSE;
-			result.mouse = create_mouse_event(irb[0].Event.MouseEvent);
-			break;
-		case WINDOW_BUFFER_SIZE_EVENT:
-			result.type = event_type::RESIZE;
-			result.resize = create_resize_event(irb[0].Event.WindowBufferSizeEvent);
-			break;
-		}
 	}
-	return result;
+	switch(irb[0].EventType) {
+	case KEY_EVENT:
+		return create_key_event(irb[0].Event.KeyEvent);
+	case MOUSE_EVENT:
+		return create_mouse_event(irb[0].Event.MouseEvent);
+	case WINDOW_BUFFER_SIZE_EVENT:
+		return create_resize_event(irb[0].Event.WindowBufferSizeEvent);
+	default:
+		event ev;
+		return ev;
+	}
 }
+
 
 } // namespace curses

@@ -1,7 +1,7 @@
 #ifndef __CURSES_BORDER_HPP_INCLUDED__
 #define __CURSES_BORDER_HPP_INCLUDED__
 
-#include "object.hpp"
+#include "sobject.hpp"
 #include "pen.hpp"
 
 namespace curses {

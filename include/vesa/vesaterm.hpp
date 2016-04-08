@@ -3,6 +3,20 @@
 
 #include "basic_terminal_spec.hpp"
 
+#define CRS_SINLE_TOP_LEFT  0xDA
+#define CRS_SINLE_TOP_RIGHT 0xBF
+#define CRS_SINLE_BOTTOM_LEFT 0xC0
+#define CRS_SINLE_BOTTOM_RIGHT 0xD9
+#define CRS_SINLE_HORIZONTAL 0xC4
+#define CRS_SINLE_VERTICAL 0xB3
+
+#define CRS_DOUBLE_TOP_LEFT  0xC9
+#define CRS_DOUBLE_TOP_RIGHT 0xBB
+#define CRS_DOUBLE_BOTTOM_LEFT OxC8
+#define CRS_DOUBLE_BOTTOM_RIGHT 0xBC
+#define CRS_DOUBLE_HORIZONTAL 0xCD
+#define CRS_DOUBLE_VERTICAL 0xBA
+
 namespace curses {
 
 typedef basic_texel<uint8_t> texel;

@@ -4,8 +4,45 @@
 
 #include <unistd.h>
 
+#ifdef CURSES_HAS_CPP11
+#define CURSES_TEXT(T) U##T
+#endif // CURSES_HAS_CPP11
+#define CURSES_TEXT(T) L##T
+#endif // CURSES_HAS_CPP11
+
 namespace curses {
-	// utf-8
-	typedef char char_t;
+	// utf-32 LE OR BE
+#ifdef CURSES_HAS_CPP11
+	typedef char32_t char_t;
+#else
+	typedef wchar_t char_t;
+#endif
 }
 
+#define CRS_SINLE_TOP_LEFT     CURSES_TEXT('┌')
+#define CRS_SINLE_TOP_RIGHT    CURSES_TEXT('┌')
+#define CRS_SINLE_BOTTOM_LEFT  CURSES_TEXT('└')
+#define CRS_SINLE_BOTTOM_RIGHT CURSES_TEXT('┘')
+#define CRS_SINLE_HORIZONTAL   CURSES_TEXT('─')
+#define CRS_SINLE_VERTICAL     CURSES_TEXT('│')
+
+#define CRS_DOUBLE_TOP_LEFT     CURSES_TEXT('╔')
+#define CRS_DOUBLE_TOP_RIGHT    CURSES_TEXT('╗')
+#define CRS_DOUBLE_BOTTOM_LEFT  CURSES_TEXT('╚')
+#define CRS_DOUBLE_BOTTOM_RIGHT CURSES_TEXT('╝')
+#define CRS_DOUBLE_HORIZONTAL   CURSES_TEXT('═')
+#define CRS_DOUBLE_VERTICAL     CURSES_TEXT('║')
+
+#define CRS_SINGLE_TABLE_LEFT   CURSES_TEXT('┤')
+#define CRS_SINGLE_TABLE_RIGHT  CURSES_TEXT('├')
+#define CRS_SINGLE_TABLE_MIDLE  CURSES_TEXT('┼')
+#define CRS_SINGLE_TABLE_TOP    CURSES_TEXT('┬')
+#define CRS_SINGLE_TABLE_BOTTOM CURSES_TEXT('┴')
+
+#define CRS_DOUBLE_TABLE_LEFT   CURSES_TEXT('╣')
+#define CRS_DOUBLE_TABLE_RIGHT  CURSES_TEXT('╠')
+#define CRS_DOUBLE_TABLE_MIDLE  CURSES_TEXT('╬')
+#define CRS_DOUBLE_TABLE_TOP    CURSES_TEXT('╦')
+#define CRS_DOUBLE_TABLE_BOTTOM CURSES_TEXT('╩')
+
+#define CRS_CLEAR_BODY_CH       CURSES_TEXT('░')
